@@ -23,6 +23,7 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
+import javax.jms.Topic;
 
 
 /**
@@ -51,20 +52,20 @@ public class TicketSubscriber
 
     public TicketSubscriber(Session session, String destinationName) {
       logger.fine("Building Message Consumer");
-      System.out.println("Challenge : Subscribes to topic");
-      System.out.println("Your code to create a subscription will go here");
 
-      //try {
+      try {
         // Create the Topic and Subscription to it.
-        // The following code needs to be added here
         logger.finest("Challenge Add code to : Create a topic");
+        Topic topic = session.createTopic(destinationName);
+
         logger.finest("Challenge Add code to : Create a Consumer, save in class variable subscriber");
+        subscriber = session.createConsumer(topic);
 
         logger.fine("Subscription to ticket queue established");
-      //} catch (JMSException e) {
-      //  logger.severe("Unable to establish subscription to ticket queue");
-      //  e.printStackTrace();
-      //}
+      } catch (JMSException e) {
+       logger.severe("Unable to establish subscription to ticket queue");
+       e.printStackTrace();
+      }
     }
 
     /**
@@ -93,10 +94,9 @@ public class TicketSubscriber
       Message message = null;
       try {
         logger.finest("Waiting for a message");
-        System.out.println("Challenge : Receives a publication");
-        System.out.println("Your code to receive a message will go here");
-        // The following code needs to be added here
+
         logger.finest("Challenge Add code to : Receive a message from the MessageConsumer");
+        message = subscriber.receive();
 
         if (message != null)
         {
@@ -107,10 +107,6 @@ public class TicketSubscriber
         }
 
         concurrentErrorCounter = 0;
-
-        // Once you have your message you can delete this line
-        System.out.println("You can remove this thrown exception when you have your message code");
-        throw new PublishWaitException("Temp Exit from an endless loop in shell code");
       }
       catch (JMSException e) {
         logger.warning("Error waiting for ticket message to be published");
