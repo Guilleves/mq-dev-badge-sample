@@ -97,7 +97,7 @@ public class TicketRequester
         purchaseQueue = session.createQueue(PURCHASE_QUEUE);
 
         // Create a MessageProducer
-        producer = session.createProducer();
+        producer = session.createProducer(purchaseQueue);
 
         // Send the Request  
         producer.send(purchaseQueue, requestMessage);
@@ -144,8 +144,8 @@ public class TicketRequester
 
         logger.finest("Challenge Add code to : Create a Consumer");
         // Create a Consumer
-        String messageSelector = "JMSCorrelationID = '%s'".formatted(correlationID);
-        consumer = session.createConsumer(confirmationQueue, messageSelector));
+        String messageSelector = String.format("JMSCorrelationID = '%s'", correlationID);
+        consumer = session.createConsumer(confirmationQueue, messageSelector);
 
         logger.finest("Challenge Add code to : Receive a Message");
         // Listen 
