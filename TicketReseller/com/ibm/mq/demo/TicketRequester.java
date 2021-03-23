@@ -71,6 +71,8 @@ public class TicketRequester
     public static String put(Message message, int numTickets)
     {
       String correlationID = null;
+      Queue purchaseQueue = null;
+      MessageProducer producer = null;
 
       try {
         logger.finest("Building message to request tickets");
@@ -83,15 +85,22 @@ public class TicketRequester
 
         System.out.println("Challenge : Receiving a publication triggers a put then requests to purchase a batch of tickets");
         System.out.println("Your code to put a message onto the purchase queue will go here");
-        // The following code needs to be added here
+
         logger.finest("Challenge Add code to : Set the JMS Correlation ID");
+        requestMessage.setJMSCorrelationID(correlationID);
+        
         logger.finest("Challenge Add code to : Set the JMS Expiration");
+        requestMessage.setJMSExpiration(500000);
 
         logger.finest("Sending request to purchase tickets");
-
         // Create the purchase Queue
+        purchaseQueue = session.createQueue(PURCHASE_QUEUE);
+
         // Create a MessageProducer
-        // Send the Request
+        producer = session.createProducer();
+
+        // Send the Request  
+        producer.send(purchaseQueue, requestMessage);
 
         logger.finest("Sent request for tickets");
        }
@@ -121,24 +130,35 @@ public class TicketRequester
     public boolean get(String correlationID) {
       boolean success = false;
       Message responseMsg = null;
+      Queue confirmationQueue = null;
+      MessageConsumer consumer = null;
 
-      //try {
+      try {
         logger.finest("Performing receive on confirmation queue");
         System.out.println("Challenge : our reseller application does a get from this queue");
         System.out.println("Your code to receive a message from the confirmation queue will go here");
-        // The following code needs to be added here
+
         logger.finest("Challenge Add code to : Create Confirmation Queue");
+        // Create the Confirmation Queue
+        confirmationQueue = session.createQueue(CONFIRMATION_QUEUE);
+
         logger.finest("Challenge Add code to : Create a Consumer");
+        // Create a Consumer
+        String messageSelector = "JMSCorrelationID = '%s'".formatted(correlationID);
+        consumer = session.createConsumer(confirmationQueue, messageSelector));
+
         logger.finest("Challenge Add code to : Receive a Message");
+        // Listen 
+        responseMsg = consumer.receive(50000);
 
         if (responseMsg != null) {
           success = isAccepted(responseMsg);
         }
-      //}
-      //catch (JMSException e) {
-      //  logger.warning("Error connecting to confirmation queue");
-      //  e.printStackTrace();
-      //}
+      }
+      catch (JMSException e) {
+       logger.warning("Error connecting to confirmation queue");
+       e.printStackTrace();
+      }
 
       return success;
     }
