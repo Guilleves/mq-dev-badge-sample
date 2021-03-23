@@ -100,7 +100,7 @@ public class TicketRequester
         producer = session.createProducer(purchaseQueue);
 
         // Send the Request  
-        producer.send(purchaseQueue, requestMessage);
+        producer.send(requestMessage);
 
         logger.finest("Sent request for tickets");
        }
