@@ -60,7 +60,7 @@ public class SessionBuilder
     Session session = null;
     logger.fine("Initialising JMS session connection");
 
-    //try {
+    try {
       // Create a connection factory
       logger.finest("Creating Connection Factory");
       String host = getSystemEnvString("MQ_BADGE_QM_HOSTNAME", HOST);;
@@ -79,28 +79,46 @@ public class SessionBuilder
         }
 		  }
 
-      System.out.println("Challenge : Subscribes to topic");
-      System.out.println("Your code to create a subscription will go here");
-      // The following code needs to be added here
       logger.finest("Challenge Add code to : Get an instance of JMS Factory factory");
+			JmsFactoryFactory ff = JmsFactoryFactory.getInstance(WMQConstants.WMQ_PROVIDER);
+
       logger.finest("Challenge Add code to : Get an instance of JMS Connection factory");
+			JmsConnectionFactory cf = ff.createConnectionFactory();
 
       // Set the properties
       logger.finest("Challenge Add code to : Set WMQ_ properties for Connection");
+			cf.setStringProperty(WMQConstants.WMQ_HOST_NAME, host);
+			cf.setIntProperty(WMQConstants.WMQ_PORT, port);
+			cf.setStringProperty(WMQConstants.WMQ_QUEUE_MANAGER, qmgr);
+			cf.setStringProperty(WMQConstants.USERID, user);
+			cf.setStringProperty(WMQConstants.PASSWORD, password);
+			cf.setStringProperty(WMQConstants.WMQ_CHANNEL, channel);
+      cf.setStringProperty(WMQConstants.CLIENT_ID, SUBSCRIPTION_NAME);
+
+			cf.setIntProperty(WMQConstants.WMQ_CONNECTION_MODE, WMQConstants.WMQ_CM_CLIENT);
+			cf.setStringProperty(WMQConstants.WMQ_APPLICATIONNAME, "JmsPutGet (JMS)");
+			cf.setBooleanProperty(WMQConstants.USER_AUTHENTICATION_MQCSP, true);
+
 
       // Create JMS objects
       logger.finest("Creating Connection Session");
       logger.finest("Challenge Add code to : Create the Connection");
+      Connection connection = cf.createConnection();
+
       logger.finest("Challenge Add code to : Create the Session");
+      boolean TRANSACTED = false;
+      session = connection.createSession(TRANSACTED, Session.AUTO_ACKNOWLEDGE);
+      
       logger.finest("Challenge Add code to : Start the Connection");
+      connection.start();
 
 
       logger.fine("JMS session connection initialised successfully");
-    //}
-    //catch (JMSException jmsex) {
-    //  logger.severe("Unable to create JMS Connection");
-    //  jmsex.printStackTrace();
-    //}
+    }
+    catch (JMSException jmsex) {
+     logger.severe("Unable to create JMS Connection");
+     jmsex.printStackTrace();
+    }
 
     return session;
   }
